@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College-PPT Builder</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+    <style>
+        :root {
+            --font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            --drop-zone-bg: #2a2a2a;
+        }
+
+        /* --- Theme: Dark Gradient (Default) --- */
+        .theme-dark-gradient {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --primary-color: #6200ee;
+            --primary-variant-color: #3700b3;
+            --secondary-color: #03dac6;
+            --on-bg-text-color: #e0e0e0;
+            --on-surface-text-color: #ffffff;
+            --border-color: #2c2c2c;
+            --placeholder-text-color: #888;
+            --table-header-bg: #3700b3;
+            --table-row-alt: #2a2a2a;
+        }
+
+        /* --- Theme: Bright Gradient --- */
+        .theme-bright-gradient {
+            --bg-color: #f0f2f5;
+            --surface-color: #ffffff;
+            --primary-color: #007bff;
+            --primary-variant-color: #0056b3;
+            --secondary-color: #17a2b8;
+            --on-bg-text-color: #212529;
+            --on-surface-text-color: #212529;
+            --border-color: #dee2e6;
+            --placeholder-text-color: #6c757d;
+            --table-header-bg: #0056b3;
+            --table-row-alt: #f8f9fa;
+        }
+
+        /* --- Theme: Solo Blue --- */
+        .theme-solo-blue {
+            --bg-color: #eaf2f8;
+            --surface-color: #ffffff;
+            --primary-color: #2a62ff;
+            --primary-variant-color: #0037c7;
+            --secondary-color: #00a2ff;
+            --on-bg-text-color: #3c4043;
+            --on-surface-text-color: #3c4043;
+            --border-color: #d2e3fc;
+            --placeholder-text-color: #6c757d;
+            --table-header-bg: #0037c7;
+            --table-row-alt: #f1f3f5;
+        }
+
+        /* --- Theme: Geometric Dark --- */
+        .theme-geometric-dark {
+            --bg-color: #0f172a;
+            --surface-color: #1e293b;
+            --primary-color: #818cf8;
+            --primary-variant-color: #4f46e5;
+            --secondary-color: #34d399;
+            --on-bg-text-color: #cbd5e1;
+            --on-surface-text-color: #f8fafc;
+            --border-color: #334155;
+            --placeholder-text-color: #94a3b8;
+            --table-header-bg: #4f46e5;
+            --table-row-alt: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--on-bg-text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- Top Bar --- */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            height: 60px;
+            background-color: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            color: var(--on-surface-text-color);
+            flex-shrink: 0;
+        }
+
+        .logo-title {
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .user-icon {
+            font-size: 24px;
+        }
+
+        #content-area {
+            flex-grow: 1;
+            position: relative;
+            display: flex;
+            overflow: auto;
+        }
+
+        /* --- Setup View --- */
+        #setup-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .form-panel {
+            flex: 1 1 450px;
+            max-width: 450px;
+            min-width: 340px;
+            padding: 24px;
+            overflow-y: auto;
+            background-color: var(--surface-color);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .live-preview-panel {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 32px;
+            overflow-y: auto;
+            flex-direction: column;
+        }
+
+        .live-preview-panel .preview-label {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            font-size: 12px;
+            color: var(--placeholder-text-color);
+            background: var(--surface-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        #live-preview-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- Beautified Front Page Preview --- */
+        .front-slide-preview {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 50px 60px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            aspect-ratio: 16 / 9;
+            justify-content: center;
+            text-align: left;
+            position: relative;
+        }
+
+        #preview-title {
+            font-size: 44px;
+            color: var(--on-surface-text-color);
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        #preview-presenter-name {
+            font-size: 20px;
+            color: var(--on-surface-text-color);
+            font-weight: 400;
+            max-width: 80%;
+            border-left: 3px solid var(--primary-color);
+            padding-left: 15px;
+        }
+
+        #preview-details {
+            margin-top: auto;
+            padding-top: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--placeholder-text-color);
+        }
+
+        #preview-details span {
+            display: block;
+        }
+
+        .slide-logo.front-page-logo {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            max-height: 50px;
+            max-width: 120px;
+            opacity: 0.9;
+        }
+
+
+        /* --- Form --- */
+        #ppt-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 16px;
+        }
+
+        .form-divider {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 8px 0;
+        }
+
+        .form-group label {
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px 12px;
+            color: var(--on-bg-text-color);
+            font-size: 16px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: var(--font-family);
+        }
+
+        input[type="file"] {
+            padding: 8px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+        }
+
+        .form-group select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23888' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 16px 12px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 40%, transparent);
+        }
+
+        .generation-mode-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            background-color: var(--surface-color);
+            color: var(--on-surface-text-color);
+            border: 1px solid var(--border-color);
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+            flex: 1;
+        }
+
+        .mode-btn.active,
+        .mode-btn:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .input-section {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            padding: 16px 0;
+            border-top: 1px solid var(--border-color);
+            margin-top: 16px;
+        }
+
+        .input-section.active {
+            display: flex;
+        }
+
+        #generate-from-ai-btn,
+        #load-manual-data-btn {
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            padding: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        #generate-from-ai-btn:hover,
+        #load-manual-data-btn:hover {
+            background-color: var(--primary-variant-color);
+        }
+
+        /* --- Main Content / Slides --- */
+        #slides-container-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+            display: flex;
+            /* Changed for new layout */
+            flex-direction: column;
+        }
+
+        .slide-view-actions {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding: 12px;
+            background-color: var(--surface-color);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .action-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .action-btn.secondary {
+            background-color: var(--surface-color);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        .action-btn:hover {
+            background-color: var(--primary-variant-color);
+        }
+
+        .action-btn.secondary:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        #export-pptx-btn-main {
+            margin-left: auto;
+        }
+
+        /* Push export to the right */
+
+
+        #slides-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 24px;
+            flex-grow: 1;
+        }
+
+        .add-slide-btn-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            min-height: 225px;
+            /* approx 16:9 */
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-slide-btn-container:hover {
+            border-color: var(--secondary-color);
+            background-color: color-mix(in srgb, var(--surface-color) 50%, transparent);
+        }
+
+        .add-slide-btn-container span {
+            font-size: 24px;
+            color: var(--placeholder-text-color);
+        }
+
+
+        .hidden {
+            display: none !important;
+        }
+
+        .slide {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            aspect-ratio: 16 / 9;
+            transition: background-color 0.3s, border-color 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide h2 {
+            font-size: 22px;
+            color: var(--on-surface-text-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            flex-shrink: 0;
+            transition: color 0.3s, border-color 0.3s;
+        }
+
+        .slide.front-slide {
+            padding: 40px;
+            text-align: left;
+            justify-content: center;
+        }
+
+        .slide.front-slide h2 {
+            font-size: 40px;
+            font-weight: 600;
+            border: none;
+        }
+
+        .slide-body {
+            display: flex;
+            gap: 24px;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .slide-body.image-right {
+            flex-direction: row;
+        }
+
+        .slide-body.image-left {
+            flex-direction: row-reverse;
+        }
+
+        .text-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .slide ul {
+            list-style-position: inside;
+            padding-left: 0;
+        }
+
+        .slide li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        [contenteditable] {
+            cursor: text;
+            outline: none;
+            padding: 2px;
+            border-radius: 2px;
+        }
+
+        [contenteditable]:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        [contenteditable]:focus {
+            background-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 2px var(--secondary-color);
+        }
+
+        .slide table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .slide th,
+        .slide td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+
+        .slide th {
+            background-color: var(--table-header-bg);
+            color: white;
+            font-weight: bold;
+        }
+
+        .slide tr:nth-child(even) {
+            background-color: var(--table-row-alt);
+        }
+
+        .image-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 40%;
+        }
+
+        .image-drop-zone {
+            flex-grow: 1;
+            border: 2px dashed var(--border-color);
+            border-radius: 6px;
+            background-color: color-mix(in srgb, var(--bg-color) 50%, var(--surface-color));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: var(--placeholder-text-color);
+            font-size: 14px;
+            position: relative;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+
+        .image-drop-zone.dragover {
+            border-color: var(--secondary-color);
+            background-color: color-mix(in srgb, var(--bg-color) 20%, var(--surface-color));
+        }
+
+        .slide-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+            transition: transform 0.2s ease;
+        }
+
+        .image-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .image-controls a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .remove-image-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 14px;
+            line-height: 24px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+            z-index: 2;
+        }
+
+        .remove-image-btn:hover {
+            background-color: rgba(255, 0, 0, 0.8);
+            transform: scale(1.1);
+        }
+
+        #loader {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            color: white;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--border-color);
+            border-top-color: var(--secondary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 900px) {
+            #setup-container {
+                flex-direction: column;
+            }
+
+            .form-panel {
+                max-width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+        }
+    </style>
+    <script type="importmap">
+        { "imports": { "pptxgenjs": "https://esm.sh/pptxgenjs@3.12.0" } }
+    </script>
+</head>
+
+<body class="theme-dark-gradient">
+    <div id="app">
+        <header class="top-bar">
+            <div class="logo-title">College-PPT</div>
+            <div class="user-icon">S.A.M.</div>
+        </header>
+
+        <div id="content-area">
+            <div id="setup-container">
+                <div class="form-panel">
+                    <form id="ppt-form">
+                        <div class="form-group">
+                            <label for="topic">Title</label>
+                            <input type="text" id="topic" name="topic" placeholder="e.g., The Future of Renewable Energy" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Presenter's Name</label>
+                            <input type="text" id="description" name="description" placeholder="e.g., S.A.M." required>
+                        </div>
+                        <hr class="form-divider">
+                        <div class="form-group">
+                            <label for="roll">Roll / Designation (Optional)</label>
+                            <input type="text" id="roll" name="roll" placeholder="e.g., 34900123...">
+                        </div>
+                        <div class="form-group">
+                            <label for="department">Department / Team</label>
+                            <input type="text" id="department" name="department" placeholder="e.g., CSE Dept." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="college">Company / College</label>
+                            <input type="text" id="college" name="college" placeholder="e.g., CGEC." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="university">University (if applicable)</label>
+                            <input type="text" id="university" name="university" placeholder="e.g., MAKAUT University">
+                        </div>
+                        <hr class="form-divider">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="theme-select">Theme</label>
+                                <select id="theme-select" name="theme">
+                                    <option value="dark-gradient">Dark Gradient</option>
+                                    <option value="bright-gradient">Bright Gradient</option>
+                                    <option value="solo-blue">Solo Blue</option>
+                                    <option value="geometric-dark">Geometric Dark</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="logo-upload">Logo (Front Page Only)</label>
+                                <input type="file" id="logo-upload" name="logo-upload" accept="image/*">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="transition-select">Transition</label>
+                                <select id="transition-select" name="transition">
+                                    <option value="fade">Fade</option>
+                                    <option value="slide">Slide</option>
+                                    <option value="zoom">Zoom</option>
+                                    <option value="none">None</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="slide-count">Number of Slides</label>
+                                <input type="number" id="slide-count" name="slide-count" min="1" max="15" value="7" required>
+                            </div>
+                        </div>
+
+                        <hr class="form-divider">
+                        <div class="generation-mode-buttons">
+                            <button type="button" class="mode-btn active" id="mode-ai-btn" data-mode="ai">AI Generation</button>
+                            <button type="button" class="mode-btn" id="mode-manual-btn" data-mode="manual">Manual Input</button>
+                        </div>
+
+                        <div id="ai-input-section" class="input-section active">
+                            <p style="font-size: 0.9em; color: var(--placeholder-text-color);">
+                                Click the button below to open ChatGPT with a generated prompt. Then, copy the JSON response and paste it into the "Manual Input" tab.
+                            </p>
+                            <div class="d-flex flex-row">
+                                <button type="button" id="generate-from-ai-btn">Generate with ChatGPT</button>
+                                <button type="button">Generate Automatically</button>
+                            </div>
+                        </div>
+
+                        <div id="manual-input-section" class="input-section">
+                            <div class="form-group">
+                                <label for="manual-json-input">Paste Presentation JSON Here</label>
+                                <textarea id="manual-json-input" rows="10" placeholder="Paste the JSON object from the AI here."></textarea>
+                            </div>
+                            <button type="button" id="load-manual-data-btn">Load Presentation</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="live-preview-panel">
+                    <div id="live-preview-container">
+                        <p class="preview-label">Live Preview</p>
+                        <div class="slide front-slide-preview">
+                            <h2 id="preview-title">Presentation Title</h2>
+                            <p id="preview-presenter-name">Presenter's Name</p>
+                            <div id="preview-details">
+                                <span id="preview-roll">Roll / Designation</span>
+                                <span id="preview-department">Department</span>
+                                <span id="preview-college">Company / College</span>
+                                <span id="preview-university">University</span>
+                            </div>
+                            <img id="preview-logo" class="slide-logo front-page-logo" style="display: none;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="slides-container-wrapper" class="hidden">
+                <div class="slide-view-actions">
+                    <button id="start-new-btn" class="action-btn secondary">Start New Presentation</button>
+                    <button id="export-pptx-btn-main" class="action-btn">Export PPTX</button>
+                </div>
+                <div id="slides-container">
+                    <!-- Slides will be injected here -->
+                </div>
+            </div>
+
+            <div id="loader" class="hidden">
+                <div class="spinner"></div>
+                <p>Working...</p>
+            </div>
+        </div>
+    </div>
+    <script type="module">
+        import PptxGenJS from 'pptxgenjs';
+
+        // --- Global State ---
+        let currentPresentation = null;
+        let currentTopicSlug = null;
+        let currentTheme = 'dark-gradient';
+        let currentLogo = null; // Base64 string for front page logo
+        let currentGenerationMode = 'ai'; // Default mode
+
+        // --- DOM Elements ---
+        const form = document.getElementById('ppt-form');
+        const loader = document.getElementById('loader');
+        const exportPptxBtn = document.getElementById('export-pptx-btn-main');
+        const themeSelect = document.getElementById('theme-select');
+        const logoUpload = document.getElementById('logo-upload');
+        const slidesContainerWrapper = document.getElementById('slides-container-wrapper');
+        const slidesContainer = document.getElementById('slides-container');
+        const setupContainer = document.getElementById('setup-container');
+
+        const modeAiBtn = document.getElementById('mode-ai-btn');
+        const modeManualBtn = document.getElementById('mode-manual-btn');
+        const aiInputSection = document.getElementById('ai-input-section');
+        const manualInputSection = document.getElementById('manual-input-section');
+        const manualJsonInput = document.getElementById('manual-json-input');
+        const generateFromAiBtn = document.getElementById('generate-from-ai-btn');
+        const loadManualDataBtn = document.getElementById('load-manual-data-btn');
+        const startNewBtn = document.getElementById('start-new-btn');
+
+        // --- IndexedDB Manager ---
+        class DBManager {
+            db = null;
+            dbName = 'SmartPPTDB';
+            version = 1;
+
+            async init() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(this.dbName, this.version);
+                    request.onupgradeneeded = () => {
+                        const db = request.result;
+                        if (!db.objectStoreNames.contains('presentations')) db.createObjectStore('presentations', {
+                            keyPath: 'slug'
+                        });
+                        if (!db.objectStoreNames.contains('images')) db.createObjectStore('images', {
+                            keyPath: 'key'
+                        });
+                        if (!db.objectStoreNames.contains('app_state')) db.createObjectStore('app_state', {
+                            keyPath: 'key'
+                        });
+                    };
+                    request.onsuccess = () => {
+                        this.db = request.result;
+                        resolve();
+                    };
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            getStore(name, mode) {
+                if (!this.db) throw new Error("DB not initialized");
+                return this.db.transaction(name, mode).objectStore(name);
+            }
+
+            async saveData(storeName, data) {
+                return new Promise((resolve, reject) => {
+                    const request = this.getStore(storeName, 'readwrite').put(data);
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async getData(storeName, key) {
+                return new Promise((resolve, reject) => {
+                    const request = this.getStore(storeName, 'readonly').get(key);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async deleteData(storeName, key) {
+                return new Promise((resolve, reject) => {
+                    const request = this.getStore(storeName, 'readwrite').delete(key);
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            }
+        }
+        const db = new DBManager();
+
+        // --- Event Listeners ---
+        generateFromAiBtn.addEventListener('click', handleAIGeneration);
+        loadManualDataBtn.addEventListener('click', handleManualGeneration);
+        exportPptxBtn.addEventListener('click', exportToPptx);
+        themeSelect.addEventListener('change', handleThemeChange);
+        logoUpload.addEventListener('change', handleLogoUpload);
+        startNewBtn.addEventListener('click', startNewPresentation);
+
+        modeAiBtn.addEventListener('click', () => switchGenerationMode('ai'));
+        modeManualBtn.addEventListener('click', () => switchGenerationMode('manual'));
+
+        ['topic', 'description', 'roll', 'department', 'college', 'university'].forEach(id => {
+            document.getElementById(id)?.addEventListener('input', () => updateLivePreview());
+        });
+
+
+        // --- Main App Flow ---
+        async function initializeApp() {
+            await db.init();
+
+            const savedTheme = await db.getData('app_state', 'selectedTheme');
+            if (savedTheme) {
+                applyTheme(savedTheme.value);
+                themeSelect.value = savedTheme.value;
+            }
+            const savedLogo = await db.getData('app_state', 'userLogo');
+            if (savedLogo) {
+                currentLogo = savedLogo.value;
+            }
+
+            const lastOpenedSlug = await db.getData('app_state', 'lastOpened');
+            if (lastOpenedSlug) {
+                const presentation = await db.getData('presentations', lastOpenedSlug.value);
+                if (presentation) {
+                    currentPresentation = presentation.data;
+                    currentTopicSlug = presentation.slug;
+                    setFormValues(currentPresentation.frontSlide);
+                    renderSlides(currentPresentation, currentTopicSlug);
+                    showSlideView();
+                }
+            }
+            updateLivePreview();
+            switchGenerationMode(currentGenerationMode);
+        }
+
+        function switchGenerationMode(mode) {
+            currentGenerationMode = mode;
+            aiInputSection.classList.toggle('active', mode === 'ai');
+            manualInputSection.classList.toggle('active', mode === 'manual');
+            modeAiBtn.classList.toggle('active', mode === 'ai');
+            modeManualBtn.classList.toggle('active', mode === 'manual');
+        }
+
+        function startNewPresentation() {
+            if (!confirm("Are you sure you want to start a new presentation? All unsaved changes will be lost.")) return;
+            currentPresentation = null;
+            currentTopicSlug = null;
+            db.saveData('app_state', {
+                key: 'lastOpened',
+                value: null
+            });
+            resetForm();
+            showSetupView();
+        }
+
+        function resetForm() {
+            form.reset();
+            updateLivePreview();
+        }
+
+        function handleAIGeneration() {
+            const formData = new FormData(form);
+            const topic = formData.get('topic');
+            const name = formData.get('description'); // Note: 'description' field is now used for Presenter's Name
+            const roll = formData.get('roll') || '';
+            const department = formData.get('department');
+            const college = formData.get('college');
+            const university = formData.get('university') || '';
+            const slideCount = formData.get('slide-count');
+
+            if (!topic || !name) {
+                alert("Please fill in the Title and Presenter's Name fields first.");
+                return;
+            }
+
+            const fullPrompt = `You are a professional PowerPoint creator. Your task is to return a valid JSON object for a presentation.
+- Topic: ${topic}
+- Presenter Details: For ${name} (Role: ${roll}), ${department}, ${college}, ${university}.
+- Slides: Create exactly ${slideCount} content slides.
+- Content Rules:
+- Each slide needs a 'title', an 'imageSearch' keyword (a concise phrase), and content.
+- Content must be either 'bullets' (an array of 2-4 strings) OR a 'table' (with 'headers' array and 'rows' array of arrays).
+- Set 'contentType' to "bullets" or "table" accordingly.
+- For bullet slides, set 'imagePosition' to "left" or "right".
+- For table slides, set 'imagePosition' to "none" as they will be full-width.
+- Keep content concise and professional.
+- Output Format: Return ONLY the raw, valid JSON object, without any surrounding text or markdown.
+- JSON Schema Example:
+{
+  "frontSlide": { "topic": "${topic}", "name": "${name}", "roll": "${roll}", "department": "${department}", "college": "${college}", "university": "${university}", "date": "string" },
+  "slides": [
+    { "title": "string", "contentType": "bullets", "bullets": ["string"], "imageSearch": "string", "imagePosition": "right" },
+    { "title": "string", "contentType": "table", "table": { "headers": ["string"], "rows": [["string"]] }, "imageSearch": "string", "imagePosition": "none" }
+  ]
+}`;
+
+            window.open(`https://chat.openai.com/?q=${encodeURIComponent(fullPrompt)}`, '_blank');
+            alert("ChatGPT opened with your prompt. Copy the JSON response and paste it into the 'Manual Input' tab to load your presentation.");
+        }
+
+        async function handleManualGeneration() {
+            setLoading(true, 'Loading Data...');
+            try {
+                const rawJson = manualJsonInput.value.trim();
+                if (!rawJson) throw new Error("Please paste JSON data.");
+
+                const presentationData = JSON.parse(rawJson);
+
+                if (!presentationData.frontSlide || !presentationData.slides) {
+                    throw new Error("Invalid JSON structure. Missing 'frontSlide' or 'slides' array.");
+                }
+                if (!presentationData.frontSlide.date) {
+                    presentationData.frontSlide.date = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+                }
+
+                setFormValues(presentationData.frontSlide);
+                currentPresentation = presentationData;
+                currentTopicSlug = slugify(presentationData.frontSlide.topic);
+
+                await db.saveData('presentations', {
+                    slug: currentTopicSlug,
+                    data: presentationData
+                });
+                await db.saveData('app_state', {
+                    key: 'lastOpened',
+                    value: currentTopicSlug
+                });
+
+                renderSlides(presentationData, currentTopicSlug);
+                showSlideView();
+            } catch (error) {
+                alert(`Invalid JSON or structure: ${error.message}`);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function addSlide() {
+            if (!currentPresentation) return;
+            const newSlide = {
+                title: "New Slide Title",
+                contentType: "bullets",
+                bullets: ["Edit this bullet point.", "Add more details here."],
+                imageSearch: "abstract background",
+                imagePosition: "right"
+            };
+            currentPresentation.slides.push(newSlide);
+            db.saveData('presentations', {
+                slug: currentTopicSlug,
+                data: currentPresentation
+            });
+            renderSlides(currentPresentation, currentTopicSlug); // Re-render to show the new slide
+        }
+
+
+        function renderSlides(data, slug) {
+            slidesContainer.innerHTML = '';
+            const {
+                frontSlide,
+                slides
+            } = data;
+            const frontSlideEl = document.createElement('div');
+            frontSlideEl.className = 'slide front-slide';
+            frontSlideEl.innerHTML = `
+                ${currentLogo ? `<img class="slide-logo front-page-logo" src="${currentLogo}" />` : ''}
+                <h2 contenteditable="true" data-path="frontSlide.topic">${frontSlide.topic}</h2>
+                <p contenteditable="true" data-path="frontSlide.name" style="font-size: 1.5em; color: var(--on-surface-text-color); font-weight: 300;">${frontSlide.name || ''}</p>
+                <div class="front-slide-details" style="margin-top:auto; padding-top:20px; color: var(--placeholder-text-color);">
+                    <p><span contenteditable="true" data-path="frontSlide.roll">${frontSlide.roll || ''}</span></p>
+                    <p><span contenteditable="true" data-path="frontSlide.department">${frontSlide.department}</span></p>
+                    <p><span contenteditable="true" data-path="frontSlide.college">${frontSlide.college}</span></p>
+                    <p><span contenteditable="true" data-path="frontSlide.university">${frontSlide.university || ''}</span></p>
+                    <p><small>${frontSlide.date}</small></p>
+                </div>`;
+            slidesContainer.appendChild(frontSlideEl);
+
+            slides.forEach((slideData, index) => {
+                const slideEl = document.createElement('div');
+                slideEl.className = 'slide';
+                slideEl.dataset.slideIndex = String(index);
+                const imagePositionClass = slideData.imagePosition === 'left' ? 'image-left' : 'image-right';
+
+                let contentHtml = '';
+                if (slideData.contentType === 'table' && slideData.table) {
+                    const headers = slideData.table.headers.map((h, i) => `<th contenteditable="true" data-path="slides[${index}].table.headers[${i}]">${h}</th>`).join('');
+                    const rows = slideData.table.rows.map((row, r_idx) => `<tr>${row.map((cell, c_idx) => `<td contenteditable="true" data-path="slides[${index}].table.rows[${r_idx}][${c_idx}]">${cell}</td>`).join('')}</tr>`).join('');
+                    contentHtml = `<table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
+                } else if (slideData.bullets) {
+                    contentHtml = `<ul>${slideData.bullets.map((bullet, b_idx) => `<li contenteditable="true" data-path="slides[${index}].bullets[${b_idx}]">${bullet}</li>`).join('')}</ul>`;
+                }
+
+                const imageAreaHtml = `
+                    <div class="image-area">
+                        <div class="image-drop-zone" data-slide-index="${index}">
+                            <div class="drop-prompt">Drag & drop image here</div>
+                            <img class="slide-image" style="display: none;" />
+                            <button class="remove-image-btn" style="display: none;">×</button>
+                        </div>
+                        <div class="image-controls">
+                            <a href="https://www.google.com/search?tbm=isch&q=${encodeURIComponent(slideData.imageSearch)}" target="_blank" rel="noopener noreferrer">Search: "${slideData.imageSearch}" 🔍</a>
+                            ${slideData.contentType !== 'table' ? `<button class="action-btn secondary" style="padding: 2px 6px; font-size: 12px;" data-action="swap-image">Swap ↔</button>`: ''}
+                        </div>
+                    </div>`;
+
+                slideEl.innerHTML = `
+                    <h2 contenteditable="true" data-path="slides[${index}].title">${slideData.title}</h2>
+                    <div class="slide-body ${imagePositionClass}">
+                        <div class="text-content">${contentHtml}</div>
+                        ${(slideData.contentType !== 'table' && slideData.imagePosition !== 'none') ? imageAreaHtml : ''}
+                    </div>`;
+                if (slideData.contentType === 'table' || slideData.imagePosition === 'none') {
+                    slideEl.querySelector('.text-content').style.flex = '2'; // Give more space to table/text
+                }
+
+                slidesContainer.appendChild(slideEl);
+
+                if (slideData.contentType !== 'table' && slideData.imagePosition !== 'none') {
+                    const dropZone = slideEl.querySelector('.image-drop-zone');
+                    const removeBtn = slideEl.querySelector('.remove-image-btn');
+                    const swapBtn = slideEl.querySelector('[data-action="swap-image"]');
+
+                    dropZone.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        dropZone.classList.add('dragover');
+                    });
+                    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+                    dropZone.addEventListener('drop', (e) => {
+                        dropZone.classList.remove('dragover');
+                        handleDrop(e);
+                    });
+                    removeBtn.addEventListener('click', handleRemoveImage);
+                    swapBtn.addEventListener('click', handleSwapImage);
+
+                    (async () => {
+                        const imageKey = `${slug}-slide-${index}`;
+                        const imgData = await db.getData('images', imageKey);
+                        if (imgData) updateImageUI(dropZone, URL.createObjectURL(imgData.blob));
+                    })();
+                }
+            });
+
+            // Add the "Add Slide" button at the end
+            const addSlideContainer = document.createElement('div');
+            addSlideContainer.className = 'add-slide-btn-container';
+            addSlideContainer.innerHTML = '<span>+</span>';
+            addSlideContainer.title = 'Add New Slide';
+            addSlideContainer.addEventListener('click', addSlide);
+            slidesContainer.appendChild(addSlideContainer);
+
+            slidesContainer.querySelectorAll('[contenteditable="true"]').forEach(el => {
+                el.addEventListener('blur', handleContentEdit);
+            });
+        }
+
+        // --- Event Handlers ---
+        function handleContentEdit(e) {
+            const target = e.target;
+            const path = target.dataset.path;
+            if (!path || !currentPresentation) return;
+
+            const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.');
+            let obj = currentPresentation;
+            for (let i = 0; i < keys.length - 1; i++) {
+                obj = obj[keys[i].match(/^\d+$/) ? parseInt(keys[i]) : keys[i]];
+            }
+            obj[keys[keys.length - 1].match(/^\d+$/) ? parseInt(keys[keys.length - 1]) : keys[keys.length - 1]] = target.innerText;
+
+            db.saveData('presentations', {
+                slug: currentTopicSlug,
+                data: currentPresentation
+            });
+        }
+
+        async function handleDrop(e) {
+            e.preventDefault();
+            const dropZone = e.currentTarget;
+            const file = e.dataTransfer?.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const slideIndex = dropZone.dataset.slideIndex;
+                if (slideIndex === undefined) return;
+                const imageKey = `${currentTopicSlug}-slide-${slideIndex}`;
+                await db.saveData('images', {
+                    key: imageKey,
+                    blob: file
+                });
+                updateImageUI(dropZone, URL.createObjectURL(file));
+            }
+        }
+        async function handleRemoveImage(e) {
+            const dropZone = e.currentTarget.parentElement;
+            const slideIndex = dropZone.dataset.slideIndex;
+            if (slideIndex === undefined) return;
+            const imageKey = `${currentTopicSlug}-slide-${slideIndex}`;
+            await db.deleteData('images', imageKey);
+            updateImageUI(dropZone, null);
+        }
+
+        function handleSwapImage(e) {
+            if (!currentPresentation) return;
+            const slideEl = e.currentTarget.closest('.slide');
+            const slideIndex = parseInt(slideEl.dataset.slideIndex);
+            const slideBody = slideEl.querySelector('.slide-body');
+
+            const currentPos = currentPresentation.slides[slideIndex].imagePosition;
+            const newPos = currentPos === 'left' ? 'right' : 'left';
+            currentPresentation.slides[slideIndex].imagePosition = newPos;
+
+            slideBody.classList.toggle('image-left', newPos === 'left');
+            slideBody.classList.toggle('image-right', newPos === 'right');
+
+            db.saveData('presentations', {
+                slug: currentTopicSlug,
+                data: currentPresentation
+            });
+        }
+
+        function handleThemeChange(e) {
+            applyTheme(e.target.value);
+            db.saveData('app_state', {
+                key: 'selectedTheme',
+                value: e.target.value
+            });
+        }
+
+        async function handleLogoUpload(e) {
+            const file = e.target.files?. [0];
+            if (file) {
+                currentLogo = await blobToBase64(file);
+                db.saveData('app_state', {
+                    key: 'userLogo',
+                    value: currentLogo
+                });
+                updateLivePreview();
+            }
+        }
+
+
+        // --- Export Functions ---
+        async function exportToPptx() {
+            if (!currentPresentation) return;
+            setLoading(true, "Exporting to PPTX...");
+            const pptx = new PptxGenJS();
+            const colors = getThemePptxColors(currentTheme);
+            const transition = document.getElementById('transition-select').value;
+
+            // --- Front Slide ---
+            const {
+                frontSlide,
+                slides
+            } = currentPresentation;
+            let titleSlide = pptx.addSlide();
+            titleSlide.background = {
+                color: colors.bg
+            };
+            if (currentLogo) {
+                titleSlide.addImage({
+                    data: currentLogo,
+                    x: 8.5,
+                    y: 5.0,
+                    w: 1.2,
+                    h: 0.6
+                });
+            }
+            titleSlide.addText(frontSlide.topic, {
+                x: 0.5,
+                y: 1.0,
+                w: '90%',
+                h: 1.5,
+                fontSize: 44,
+                bold: true,
+                color: colors.titleColor,
+                align: 'left'
+            });
+
+            titleSlide.addText(frontSlide.name, {
+                x: 0.5,
+                y: 2.5,
+                w: '80%',
+                h: 0.6,
+                fontSize: 24,
+                color: colors.textColor,
+                align: 'left'
+            });
+
+            const details = [{
+                    text: frontSlide.roll || '',
+                    options: {
+                        fontSize: 14
+                    }
+                },
+                {
+                    text: frontSlide.department,
+                    options: {
+                        fontSize: 14
+                    }
+                },
+                {
+                    text: frontSlide.college,
+                    options: {
+                        fontSize: 14
+                    }
+                },
+                {
+                    text: frontSlide.university || '',
+                    options: {
+                        fontSize: 14
+                    }
+                },
+            ].filter(item => item.text);
+            titleSlide.addText(details, {
+                x: 0.5,
+                y: 4.0,
+                w: '50%',
+                h: 1.5,
+                color: colors.textColor,
+                lineSpacing: 24
+            });
+
+
+            // --- Content Slides ---
+            for (let i = 0; i < slides.length; i++) {
+                const slideData = slides[i];
+                const slideOptions = {};
+                if (transition !== 'none') {
+                    slideOptions.transition = {
+                        type: transition,
+                        duration: 1,
+                        advClick: true
+                    };
+                }
+                let newSlide = pptx.addSlide(slideOptions);
+                newSlide.background = {
+                    color: colors.bg
+                };
+                newSlide.addText(slideData.title, {
+                    x: 0.5,
+                    y: 0.25,
+                    w: '90%',
+                    h: 0.75,
+                    fontSize: 32,
+                    bold: true,
+                    color: colors.accentColor
+                });
+
+                if (slideData.contentType === 'table' && slideData.table) {
+                    const tableWidth = 9.0;
+                    const tableRows = [
+                        slideData.table.headers.map(header => ({
+                            text: header,
+                            options: {
+                                fill: colors.accentColor,
+                                color: 'FFFFFF',
+                                bold: true
+                            }
+                        })),
+                        ...slideData.table.rows.map(row => row.map(cell => ({
+                            text: cell || '',
+                            options: {
+                                color: colors.textColor
+                            }
+                        })))
+                    ];
+                    newSlide.addTable(tableRows, {
+                        x: 0.5,
+                        y: 1.2,
+                        w: tableWidth,
+                        h: 4.5,
+                        colW: Array(slideData.table.headers.length).fill(tableWidth / slideData.table.headers.length),
+                        border: {
+                            type: 'solid',
+                            pt: 1,
+                            color: colors.borderColor
+                        },
+                        autoPage: true,
+                        valign: 'middle'
+                    });
+                } else {
+                    const imageKey = `${currentTopicSlug}-slide-${i}`;
+                    const imgData = await db.getData('images', imageKey);
+
+                    if (slideData.imagePosition === 'none' || !imgData) {
+                        if (slideData.bullets) newSlide.addText(slideData.bullets.join('\n'), {
+                            x: 0.5,
+                            y: 1.2,
+                            w: 9.0,
+                            h: 4.5,
+                            color: colors.textColor,
+                            bullet: true,
+                            fontSize: 18
+                        });
+                    } else {
+                        const textX = slideData.imagePosition === 'right' ? 0.5 : 5.2;
+                        if (slideData.bullets) newSlide.addText(slideData.bullets.join('\n'), {
+                            x: textX,
+                            y: 1.2,
+                            w: 4.5,
+                            h: 4.5,
+                            color: colors.textColor,
+                            bullet: true,
+                            fontSize: 18
+                        });
+
+                        const imageX = slideData.imagePosition === 'right' ? 5.2 : 0.5;
+                        const base64 = await blobToBase64(imgData.blob);
+                        newSlide.addImage({
+                            data: base64,
+                            x: imageX,
+                            y: 1.2,
+                            w: 4.3,
+                            h: 4.5,
+                            sizing: {
+                                type: 'contain',
+                                w: 4.3,
+                                h: 4.5
+                            }
+                        });
+                    }
+                }
+            }
+
+            pptx.writeFile({
+                fileName: `${currentTopicSlug}.pptx`
+            });
+            setLoading(false);
+        }
+
+        // --- UI & Utility Functions ---
+        function setLoading(isLoading, message = "Working...") {
+            loadManualDataBtn.disabled = isLoading;
+            exportPptxBtn.disabled = isLoading || !currentPresentation;
+            loader.classList.toggle('hidden', !isLoading);
+            if (isLoading) {
+                loader.querySelector('p').textContent = message;
+            }
+        }
+
+        function showSlideView() {
+            setupContainer.classList.add('hidden');
+            slidesContainerWrapper.classList.remove('hidden');
+            exportPptxBtn.disabled = !currentPresentation;
+        }
+
+        function showSetupView() {
+            setupContainer.classList.remove('hidden');
+            slidesContainerWrapper.classList.add('hidden');
+        }
+
+        function setFormValues(fs) {
+            document.getElementById('topic').value = fs.topic || '';
+            document.getElementById('description').value = fs.name || ''; // Map `name` from JSON to the 'description' input
+            document.getElementById('roll').value = fs.roll || '';
+            document.getElementById('department').value = fs.department || '';
+            document.getElementById('college').value = fs.college || '';
+            document.getElementById('university').value = fs.university || '';
+        }
+
+        function applyTheme(themeName) {
+            document.body.className = `theme-${themeName}`;
+            currentTheme = themeName;
+            updateLivePreview();
+        }
+
+        function getThemePptxColors(theme) {
+            switch (theme) {
+                case 'bright-gradient':
+                    return {
+                        bg: 'F0F2F5', titleColor: '212529', textColor: '212529', accentColor: '0056B3', borderColor: 'DEE2E6'
+                    };
+                case 'solo-blue':
+                    return {
+                        bg: 'EAF2F8', titleColor: '0037C7', textColor: '3C4043', accentColor: '0037C7', borderColor: 'D2E3FC'
+                    };
+                case 'geometric-dark':
+                    return {
+                        bg: '1E293B', titleColor: 'F8FAFC', textColor: 'CBD5E1', accentColor: '34D399', borderColor: '334155'
+                    };
+                case 'dark-gradient':
+                default:
+                    return {
+                        bg: '1E1E1E', titleColor: 'FFFFFF', textColor: 'E0E0E0', accentColor: '03DAC6', borderColor: '2C2C2C'
+                    };
+            }
+        }
+
+        function updateImageUI(dropZone, imageUrl) {
+            const imgEl = dropZone.querySelector('.slide-image');
+            const promptEl = dropZone.querySelector('.drop-prompt');
+            const removeBtn = dropZone.querySelector('.remove-image-btn');
+            if (imageUrl) {
+                imgEl.src = imageUrl;
+                imgEl.style.display = 'block';
+                promptEl.style.display = 'none';
+                removeBtn.style.display = 'block';
+            } else {
+                imgEl.src = '';
+                imgEl.style.display = 'none';
+                promptEl.style.display = 'block';
+                removeBtn.style.display = 'none';
+            }
+        }
+
+        function updateLivePreview() {
+            document.getElementById('preview-title').innerText = document.getElementById('topic').value || 'Presentation Title';
+            document.getElementById('preview-presenter-name').innerText = document.getElementById('description').value || "Presenter's Name";
+
+            const rollValue = document.getElementById('roll').value;
+            document.getElementById('preview-roll').innerText = rollValue || 'Role / Designation';
+            document.getElementById('preview-department').innerText = document.getElementById('department').value || 'Department';
+            document.getElementById('preview-college').innerText = document.getElementById('college').value || 'Company / College';
+            document.getElementById('preview-university').innerText = document.getElementById('university').value || 'University';
+
+            const logoEl = document.getElementById('preview-logo');
+            if (currentLogo) {
+                logoEl.src = currentLogo;
+                logoEl.style.display = 'block';
+            } else {
+                logoEl.style.display = 'none';
+            }
+        }
+
+        function slugify(text) {
+            return text.toString().toLowerCase()
+                .replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-').replace(/^-+/, '').replace(/-+$/, '');
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        // --- Start the App ---
+        initializeApp();
+    </script>
+</body>
+
+</html>
