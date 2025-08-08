@@ -735,23 +735,21 @@
                             </div>
                         </div>
 
+                        <div id="ai-input-section" class="input-section active">
+                            <button type="button">Generate Automatically</button>
+                        </div>
                         <hr class="form-divider">
                         <div class="generation-mode-buttons">
                             <button type="button" class="mode-btn active" id="mode-ai-btn" data-mode="ai">AI Generation</button>
-                            <button type="button" class="mode-btn" id="mode-manual-btn" data-mode="manual">Manual Input</button>
+                            <button type="button" class="mode-btn" id="mode-manual-btn" data-mode="manual">Manual Generation</button>
                         </div>
 
-                        <div id="ai-input-section" class="input-section active">
+
+                        <div id="manual-input-section" class="input-section">
+                            <button type="button" id="generate-from-ai-btn">Generate with ChatGPT</button>
                             <p style="font-size: 0.9em; color: var(--placeholder-text-color);">
                                 Click the button below to open ChatGPT with a generated prompt. Then, copy the JSON response and paste it into the "Manual Input" tab.
                             </p>
-                            <div class="d-flex flex-row">
-                                <button type="button" id="generate-from-ai-btn">Generate with ChatGPT</button>
-                                <button type="button">Generate Automatically</button>
-                            </div>
-                        </div>
-
-                        <div id="manual-input-section" class="input-section">
                             <div class="form-group">
                                 <label for="manual-json-input">Paste Presentation JSON Here</label>
                                 <textarea id="manual-json-input" rows="10" placeholder="Paste the JSON object from the AI here."></textarea>
