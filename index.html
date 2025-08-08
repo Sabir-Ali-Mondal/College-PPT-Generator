@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>College-PPT Builder</title>
+    <title>College-PPT by SAM</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
     <style>
         :root {
@@ -208,12 +208,14 @@
             margin-top: auto;
             padding-top: 20px;
             font-size: 14px;
-            line-height: 1.5;
+            line-height: 1.6;
+            /* Increased line-height */
             color: var(--placeholder-text-color);
         }
 
         #preview-details span {
             display: block;
+            /* Ensures each detail is on a new line */
         }
 
         .slide-logo.front-page-logo {
@@ -670,7 +672,7 @@
 <body class="theme-dark-gradient">
     <div id="app">
         <header class="top-bar">
-            <div class="logo-title">College-PPT</div>
+            <div class="logo-title">🎓 College-PPT</div>
             <div class="user-icon">S.A.M.</div>
         </header>
 
@@ -685,6 +687,14 @@
                         <div class="form-group">
                             <label for="description">Presenter's Name</label>
                             <input type="text" id="description" name="description" placeholder="e.g., S.A.M." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="subject-name">Subject Name</label>
+                            <input type="text" id="subject-name" name="subject-name" placeholder="e.g., Data Structures & Algorithms" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="subject-code">Subject Code (Optional)</label>
+                            <input type="text" id="subject-code" name="subject-code" placeholder="e.g., CS501">
                         </div>
                         <hr class="form-divider">
                         <div class="form-group">
@@ -765,6 +775,8 @@
                             <h2 id="preview-title">Presentation Title</h2>
                             <p id="preview-presenter-name">Presenter's Name</p>
                             <div id="preview-details">
+                                <span id="preview-subject-name">Subject Name</span>
+                                <span id="preview-subject-code">Subject Code</span>
                                 <span id="preview-roll">Roll / Designation</span>
                                 <span id="preview-department">Department</span>
                                 <span id="preview-college">Company / College</span>
@@ -892,7 +904,7 @@
         modeAiBtn.addEventListener('click', () => switchGenerationMode('ai'));
         modeManualBtn.addEventListener('click', () => switchGenerationMode('manual'));
 
-        ['topic', 'description', 'roll', 'department', 'college', 'university'].forEach(id => {
+        ['topic', 'description', 'subject-name', 'subject-code', 'roll', 'department', 'college', 'university'].forEach(id => {
             document.getElementById(id)?.addEventListener('input', () => updateLivePreview());
         });
 
@@ -954,20 +966,23 @@
         function handleAIGeneration() {
             const formData = new FormData(form);
             const topic = formData.get('topic');
-            const name = formData.get('description'); // Note: 'description' field is now used for Presenter's Name
+            const name = formData.get('description');
+            const subjectName = formData.get('subject-name');
+            const subjectCode = formData.get('subject-code') || '';
             const roll = formData.get('roll') || '';
             const department = formData.get('department');
             const college = formData.get('college');
             const university = formData.get('university') || '';
             const slideCount = formData.get('slide-count');
 
-            if (!topic || !name) {
-                alert("Please fill in the Title and Presenter's Name fields first.");
+            if (!topic || !name || !subjectName) {
+                alert("Please fill in the Title, Presenter's Name, and Subject Name fields first.");
                 return;
             }
 
             const fullPrompt = `You are a professional PowerPoint creator. Your task is to return a valid JSON object for a presentation.
 - Topic: ${topic}
+- Subject: ${subjectName} (Code: ${subjectCode})
 - Presenter Details: For ${name} (Role: ${roll}), ${department}, ${college}, ${university}.
 - Slides: Create exactly ${slideCount} content slides.
 - Content Rules:
@@ -980,7 +995,7 @@
 - Output Format: Return ONLY the raw, valid JSON object, without any surrounding text or markdown.
 - JSON Schema Example:
 {
-  "frontSlide": { "topic": "${topic}", "name": "${name}", "roll": "${roll}", "department": "${department}", "college": "${college}", "university": "${university}", "date": "string" },
+  "frontSlide": { "topic": "${topic}", "name": "${name}", "subjectName": "${subjectName}", "subjectCode": "${subjectCode}", "roll": "${roll}", "department": "${department}", "college": "${college}", "university": "${university}", "date": "string" },
   "slides": [
     { "title": "string", "contentType": "bullets", "bullets": ["string"], "imageSearch": "string", "imagePosition": "right" },
     { "title": "string", "contentType": "table", "table": { "headers": ["string"], "rows": [["string"]] }, "imageSearch": "string", "imagePosition": "none" }
@@ -1058,7 +1073,9 @@
                 ${currentLogo ? `<img class="slide-logo front-page-logo" src="${currentLogo}" />` : ''}
                 <h2 contenteditable="true" data-path="frontSlide.topic">${frontSlide.topic}</h2>
                 <p contenteditable="true" data-path="frontSlide.name" style="font-size: 1.5em; color: var(--on-surface-text-color); font-weight: 300;">${frontSlide.name || ''}</p>
-                <div class="front-slide-details" style="margin-top:auto; padding-top:20px; color: var(--placeholder-text-color);">
+                <div class="front-slide-details" style="margin-top:auto; padding-top:20px; color: var(--placeholder-text-color); line-height: 1.6;">
+                    <p><span contenteditable="true" data-path="frontSlide.subjectName">${frontSlide.subjectName || ''}</span></p>
+                    <p><span contenteditable="true" data-path="frontSlide.subjectCode">${frontSlide.subjectCode || ''}</span></p>
                     <p><span contenteditable="true" data-path="frontSlide.roll">${frontSlide.roll || ''}</span></p>
                     <p><span contenteditable="true" data-path="frontSlide.department">${frontSlide.department}</span></p>
                     <p><span contenteditable="true" data-path="frontSlide.college">${frontSlide.college}</span></p>
@@ -1122,7 +1139,7 @@
                         handleDrop(e);
                     });
                     removeBtn.addEventListener('click', handleRemoveImage);
-                    swapBtn.addEventListener('click', handleSwapImage);
+                    swapBtn?.addEventListener('click', handleSwapImage);
 
                     (async () => {
                         const imageKey = `${slug}-slide-${index}`;
@@ -1233,6 +1250,8 @@
             if (!currentPresentation) return;
             setLoading(true, "Exporting to PPTX...");
             const pptx = new PptxGenJS();
+            // Set layout to 16:9 for all slides
+            pptx.layout = 'LAYOUT_16x9';
             const colors = getThemePptxColors(currentTheme);
             const transition = document.getElementById('transition-select').value;
 
@@ -1245,18 +1264,19 @@
             titleSlide.background = {
                 color: colors.bg
             };
+
             if (currentLogo) {
                 titleSlide.addImage({
                     data: currentLogo,
                     x: 8.5,
-                    y: 5.0,
+                    y: 4.8,
                     w: 1.2,
                     h: 0.6
                 });
             }
             titleSlide.addText(frontSlide.topic, {
                 x: 0.5,
-                y: 1.0,
+                y: 0.8,
                 w: '90%',
                 h: 1.5,
                 fontSize: 44,
@@ -1264,10 +1284,9 @@
                 color: colors.titleColor,
                 align: 'left'
             });
-
             titleSlide.addText(frontSlide.name, {
                 x: 0.5,
-                y: 2.5,
+                y: 2.3,
                 w: '80%',
                 h: 0.6,
                 fontSize: 24,
@@ -1275,38 +1294,27 @@
                 align: 'left'
             });
 
-            const details = [{
-                    text: frontSlide.roll || '',
-                    options: {
-                        fontSize: 14
-                    }
-                },
-                {
-                    text: frontSlide.department,
-                    options: {
-                        fontSize: 14
-                    }
-                },
-                {
-                    text: frontSlide.college,
-                    options: {
-                        fontSize: 14
-                    }
-                },
-                {
-                    text: frontSlide.university || '',
-                    options: {
-                        fontSize: 14
-                    }
-                },
-            ].filter(item => item.text);
-            titleSlide.addText(details, {
-                x: 0.5,
-                y: 4.0,
-                w: '50%',
-                h: 1.5,
-                color: colors.textColor,
-                lineSpacing: 24
+            // NEW: Add details one by one for better control
+            const details = [
+                frontSlide.subjectName,
+                frontSlide.subjectCode,
+                frontSlide.roll,
+                frontSlide.department,
+                frontSlide.college,
+                frontSlide.university
+            ].filter(item => item && item.trim() !== '');
+
+            let currentY = 3.2; // Starting Y position for details
+            details.forEach(detailText => {
+                titleSlide.addText(detailText, {
+                    x: 0.5,
+                    y: currentY,
+                    w: '50%',
+                    h: 0.3,
+                    fontSize: 14,
+                    color: colors.textColor
+                });
+                currentY += 0.35; // Increment Y for the next line
             });
 
 
@@ -1325,18 +1333,26 @@
                 newSlide.background = {
                     color: colors.bg
                 };
+
+                // RECALCULATED: Title position and size, with auto-shrink
                 newSlide.addText(slideData.title, {
                     x: 0.5,
-                    y: 0.25,
+                    y: 0.2,
                     w: '90%',
-                    h: 0.75,
+                    h: 0.5,
                     fontSize: 32,
                     bold: true,
-                    color: colors.accentColor
+                    color: colors.accentColor,
+                    fit: 'shrink'
                 });
 
+                // RECALCULATED: Standard content area Y and Height to prevent overflow
+                const contentY = 0.9;
+                const contentH = 4.5;
+                const contentW_full = 9.0;
+                const contentW_half = 4.3;
+
                 if (slideData.contentType === 'table' && slideData.table) {
-                    const tableWidth = 9.0;
                     const tableRows = [
                         slideData.table.headers.map(header => ({
                             text: header,
@@ -1353,19 +1369,20 @@
                             }
                         })))
                     ];
+                    // RECALCULATED: Table size and options
                     newSlide.addTable(tableRows, {
                         x: 0.5,
-                        y: 1.2,
-                        w: tableWidth,
-                        h: 4.5,
-                        colW: Array(slideData.table.headers.length).fill(tableWidth / slideData.table.headers.length),
+                        y: contentY,
+                        w: contentW_full,
+                        h: contentH,
+                        colW: Array(slideData.table.headers.length).fill(contentW_full / slideData.table.headers.length),
                         border: {
                             type: 'solid',
                             pt: 1,
                             color: colors.borderColor
                         },
-                        autoPage: true,
-                        valign: 'middle'
+                        autoPage: false,
+                        valign: 'top'
                     });
                 } else {
                     const imageKey = `${currentTopicSlug}-slide-${i}`;
@@ -1374,9 +1391,9 @@
                     if (slideData.imagePosition === 'none' || !imgData) {
                         if (slideData.bullets) newSlide.addText(slideData.bullets.join('\n'), {
                             x: 0.5,
-                            y: 1.2,
-                            w: 9.0,
-                            h: 4.5,
+                            y: contentY,
+                            w: contentW_full,
+                            h: contentH,
                             color: colors.textColor,
                             bullet: true,
                             fontSize: 18
@@ -1385,9 +1402,9 @@
                         const textX = slideData.imagePosition === 'right' ? 0.5 : 5.2;
                         if (slideData.bullets) newSlide.addText(slideData.bullets.join('\n'), {
                             x: textX,
-                            y: 1.2,
-                            w: 4.5,
-                            h: 4.5,
+                            y: contentY,
+                            w: contentW_half,
+                            h: contentH,
                             color: colors.textColor,
                             bullet: true,
                             fontSize: 18
@@ -1395,16 +1412,17 @@
 
                         const imageX = slideData.imagePosition === 'right' ? 5.2 : 0.5;
                         const base64 = await blobToBase64(imgData.blob);
+                        // RECALCULATED: Image size and added 'contain' sizing
                         newSlide.addImage({
                             data: base64,
                             x: imageX,
-                            y: 1.2,
-                            w: 4.3,
-                            h: 4.5,
+                            y: contentY,
+                            w: contentW_half,
+                            h: contentH,
                             sizing: {
                                 type: 'contain',
-                                w: 4.3,
-                                h: 4.5
+                                w: contentW_half,
+                                h: contentH
                             }
                         });
                     }
@@ -1440,7 +1458,9 @@
 
         function setFormValues(fs) {
             document.getElementById('topic').value = fs.topic || '';
-            document.getElementById('description').value = fs.name || ''; // Map `name` from JSON to the 'description' input
+            document.getElementById('description').value = fs.name || '';
+            document.getElementById('subject-name').value = fs.subjectName || '';
+            document.getElementById('subject-code').value = fs.subjectCode || '';
             document.getElementById('roll').value = fs.roll || '';
             document.getElementById('department').value = fs.department || '';
             document.getElementById('college').value = fs.college || '';
@@ -1496,8 +1516,9 @@
             document.getElementById('preview-title').innerText = document.getElementById('topic').value || 'Presentation Title';
             document.getElementById('preview-presenter-name').innerText = document.getElementById('description').value || "Presenter's Name";
 
-            const rollValue = document.getElementById('roll').value;
-            document.getElementById('preview-roll').innerText = rollValue || 'Role / Designation';
+            document.getElementById('preview-subject-name').innerText = document.getElementById('subject-name').value || 'Subject Name';
+            document.getElementById('preview-subject-code').innerText = document.getElementById('subject-code').value || 'Subject Code';
+            document.getElementById('preview-roll').innerText = document.getElementById('roll').value || 'Role / Designation';
             document.getElementById('preview-department').innerText = document.getElementById('department').value || 'Department';
             document.getElementById('preview-college').innerText = document.getElementById('college').value || 'Company / College';
             document.getElementById('preview-university').innerText = document.getElementById('university').value || 'University';
