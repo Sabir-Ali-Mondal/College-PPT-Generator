@@ -1144,7 +1144,7 @@
                         prompt: fullPrompt
                     })
                 });
-                
+
                 if (!response.ok) {
                     throw new Error(`API request failed with status ${response.status}`);
                 }
@@ -1354,6 +1354,12 @@
                     });
                     dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
                     dropZone.addEventListener('drop', handleDrop);
+
+                    // --- FIX: Explicitly handle click to open file dialog ---
+                    dropZone.addEventListener('click', () => {
+                        dropZone.querySelector('input[type="file"]').click();
+                    });
+
                     dropZone.querySelector('input[type="file"]').addEventListener('change', handleFileSelect);
                     slideEl.querySelector('.remove-image-btn').addEventListener('click', handleRemoveImage);
                     slideEl.querySelector('[data-action="swap-image"]')?.addEventListener('click', handleSwapImage);
