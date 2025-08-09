@@ -199,7 +199,6 @@
             z-index: 0;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Crect x='0' y='0' width='50' height='50'/%3E%3Crect x='50' y='50' width='50' height='50'/%3E%3C/g%3E%3C/svg%3E");
             opacity: var(--bg-color=='#f0f2f5'? 0.5 : 1);
-            /* Adjust opacity for light themes */
         }
 
         .front-slide-preview .content-overlay,
@@ -282,38 +281,38 @@
             font-size: clamp(0.75rem, 1.2vw, 0.9rem);
         }
 
+        /* --- NEW: Cleaned up Logo CSS --- */
         .front-slide-preview .logo-container,
         .slide.front-slide .logo-container {
-            max-height: 45px;
-            max-width: 120px;
+            max-height: 50px;
+            max-width: 140px;
             opacity: 0.9;
         }
 
         .front-slide-preview .logo-container img,
         .slide.front-slide .logo-container img {
-            height: 100%;
+            max-height: 100%;
+            max-width: 100%;
+            height: auto;
             width: auto;
             object-fit: contain;
+            border-radius: 8px;
+            position: relative;
+            top: -80px;
+            left: 30px;
+            border-radius: 20px;
         }
 
         /* Override old preview styles to prevent conflicts */
-        #preview-title {
+        #preview-title,
+        #preview-presenter-name,
+        #preview-details {
             font-size: inherit;
             font-weight: inherit;
             line-height: inherit;
-        }
-
-        #preview-presenter-name {
-            font-size: inherit;
             border: none;
             padding: 0;
-        }
-
-        #preview-details {
             margin-top: 0;
-            padding-top: 0;
-            font-size: inherit;
-            line-height: inherit;
         }
 
         .slide-logo.front-page-logo {
@@ -452,7 +451,6 @@
             overflow-y: auto;
             padding: 32px;
             display: flex;
-            /* Changed for new layout */
             flex-direction: column;
         }
 
@@ -497,9 +495,6 @@
             margin-left: auto;
         }
 
-        /* Push export to the right */
-
-
         #slides-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
@@ -514,7 +509,6 @@
             border: 2px dashed var(--border-color);
             border-radius: 8px;
             min-height: 225px;
-            /* approx 16:9 */
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -528,7 +522,6 @@
             font-size: 24px;
             color: var(--placeholder-text-color);
         }
-
 
         .hidden {
             display: none !important;
@@ -558,7 +551,6 @@
             transition: color 0.3s, border-color 0.3s;
         }
 
-        /* Fixes for new slide design */
         .slide.front-slide {
             padding: 0;
             justify-content: normal;
@@ -569,13 +561,11 @@
             border: none;
             padding-bottom: 0;
             font-size: inherit !important;
-            /* Prevent override */
         }
 
         .slide.front-slide h1 {
             font-size: inherit !important;
         }
-
 
         .slide-body {
             display: flex;
@@ -667,6 +657,7 @@
             font-size: 14px;
             position: relative;
             transition: border-color 0.2s, background-color 0.2s;
+            cursor: pointer;
         }
 
         .image-drop-zone.dragover {
@@ -681,7 +672,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 10px;
+            border-radius: 4px;
             transition: transform 0.2s ease;
         }
 
@@ -847,20 +838,21 @@
                         <hr class="form-divider">
                         <div class="generation-mode-buttons">
                             <button type="button" class="mode-btn active" id="mode-ai-btn" data-mode="ai">AI Generation</button>
-                            <button type="button" class="mode-btn" id="mode-manual-btn" data-mode="manual">Manual Input</button>
+                            <button type="button" class="mode-btn" id="mode-manual-btn" data-mode="manual">Manual Generation</button>
                         </div>
 
                         <div id="ai-input-section" class="input-section">
-                            <button type="button" id="generate-from-ai-btn">Generate with ChatGPT</button>
+                            <button type="button" id="generate-from-ai-btn">Generate with AI</button>
                             <p style="font-size: 0.9em; color: var(--placeholder-text-color);">
-                                Click the button to open ChatGPT with a generated prompt. Then, copy the JSON response and paste it into the "Manual Input" tab.
+                                Uses a powerful AI to generate the presentation structure and content based on your inputs.
                             </p>
                         </div>
 
                         <div id="manual-input-section" class="input-section">
+                            <button type="button" id="open-mistral-prompt-btn" class="action-btn secondary" style="margin-top: 10px;">Open Prompt in Mistral</button>
                             <div class="form-group">
                                 <label for="manual-json-input">Paste Presentation JSON Here</label>
-                                <textarea id="manual-json-input" rows="10" placeholder="Paste the JSON object from the AI here."></textarea>
+                                <textarea id="manual-json-input" rows="10" placeholder="Paste the JSON object from an AI or other source here."></textarea>
                             </div>
                             <button type="button" id="load-manual-data-btn">Load Presentation</button>
                         </div>
@@ -912,12 +904,14 @@
     <script type="module">
         import PptxGenJS from 'pptxgenjs';
 
-        // --- Global State ---
+        // --- Global State & Constants ---
         let currentPresentation = null;
         let currentTopicSlug = null;
         let currentTheme = 'dark-gradient';
         let currentLogo = null; // Base64 string for front page logo
-        let currentGenerationMode = 'ai'; // Default mode
+        let currentGenerationMode = 'ai';
+        const FORM_STATE_KEY = 'pptFormState';
+        const FORM_FIELD_IDS = ['topic', 'description', 'subject-name', 'subject-code', 'roll', 'department', 'college', 'university', 'theme-select', 'transition-select', 'slide-count'];
 
         // --- DOM Elements ---
         const form = document.getElementById('ppt-form');
@@ -928,7 +922,6 @@
         const slidesContainerWrapper = document.getElementById('slides-container-wrapper');
         const slidesContainer = document.getElementById('slides-container');
         const setupContainer = document.getElementById('setup-container');
-
         const modeAiBtn = document.getElementById('mode-ai-btn');
         const modeManualBtn = document.getElementById('mode-manual-btn');
         const aiInputSection = document.getElementById('ai-input-section');
@@ -936,14 +929,14 @@
         const manualJsonInput = document.getElementById('manual-json-input');
         const generateFromAiBtn = document.getElementById('generate-from-ai-btn');
         const loadManualDataBtn = document.getElementById('load-manual-data-btn');
+        const openMistralPromptBtn = document.getElementById('open-mistral-prompt-btn');
         const startNewBtn = document.getElementById('start-new-btn');
 
-        // --- IndexedDB Manager ---
+        // --- IndexedDB Manager (no changes) ---
         class DBManager {
             db = null;
             dbName = 'SmartPPTDB';
             version = 1;
-
             async init() {
                 return new Promise((resolve, reject) => {
                     const request = indexedDB.open(this.dbName, this.version);
@@ -966,12 +959,10 @@
                     request.onerror = () => reject(request.error);
                 });
             }
-
             getStore(name, mode) {
                 if (!this.db) throw new Error("DB not initialized");
                 return this.db.transaction(name, mode).objectStore(name);
             }
-
             async saveData(storeName, data) {
                 return new Promise((resolve, reject) => {
                     const request = this.getStore(storeName, 'readwrite').put(data);
@@ -979,7 +970,6 @@
                     request.onerror = () => reject(request.error);
                 });
             }
-
             async getData(storeName, key) {
                 return new Promise((resolve, reject) => {
                     const request = this.getStore(storeName, 'readonly').get(key);
@@ -987,7 +977,6 @@
                     request.onerror = () => reject(request.error);
                 });
             }
-
             async deleteData(storeName, key) {
                 return new Promise((resolve, reject) => {
                     const request = this.getStore(storeName, 'readwrite').delete(key);
@@ -1000,36 +989,54 @@
 
         // --- Event Listeners ---
         generateFromAiBtn.addEventListener('click', handleAIGeneration);
+        openMistralPromptBtn.addEventListener('click', openMistralWithPrompt);
         loadManualDataBtn.addEventListener('click', handleManualGeneration);
         exportPptxBtn.addEventListener('click', exportToPptx);
         themeSelect.addEventListener('change', handleThemeChange);
         logoUpload.addEventListener('change', handleLogoUpload);
         startNewBtn.addEventListener('click', startNewPresentation);
-
         modeAiBtn.addEventListener('click', () => switchGenerationMode('ai'));
         modeManualBtn.addEventListener('click', () => switchGenerationMode('manual'));
-
-        ['topic', 'description', 'subject-name', 'subject-code', 'roll', 'department', 'college', 'university'].forEach(id => {
+        form.addEventListener('input', saveFormState); // Auto-save on any form input
+        FORM_FIELD_IDS.forEach(id => {
             document.getElementById(id)?.addEventListener('input', () => updateLivePreview());
         });
 
+        // --- Form State Persistence ---
+        function saveFormState() {
+            const state = {};
+            FORM_FIELD_IDS.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) state[id] = element.value;
+            });
+            localStorage.setItem(FORM_STATE_KEY, JSON.stringify(state));
+        }
+
+        function loadFormState() {
+            const state = JSON.parse(localStorage.getItem(FORM_STATE_KEY) || '{}');
+            FORM_FIELD_IDS.forEach(id => {
+                const element = document.getElementById(id);
+                if (element && state[id]) {
+                    element.value = state[id];
+                }
+            });
+        }
 
         // --- Main App Flow ---
         async function initializeApp() {
             await db.init();
+            loadFormState(); // Load saved form data
 
-            const savedTheme = await db.getData('app_state', 'selectedTheme');
-            if (savedTheme) {
-                applyTheme(savedTheme.value);
-                themeSelect.value = savedTheme.value;
-            }
+            const savedTheme = themeSelect.value || 'dark-gradient';
+            applyTheme(savedTheme);
+
             const savedLogo = await db.getData('app_state', 'userLogo');
             if (savedLogo) {
                 currentLogo = savedLogo.value;
             }
 
             const lastOpenedSlug = await db.getData('app_state', 'lastOpened');
-            if (lastOpenedSlug) {
+            if (lastOpenedSlug && lastOpenedSlug.value) {
                 const presentation = await db.getData('presentations', lastOpenedSlug.value);
                 if (presentation) {
                     currentPresentation = presentation.data;
@@ -1065,10 +1072,11 @@
 
         function resetForm() {
             form.reset();
+            localStorage.removeItem(FORM_STATE_KEY);
             updateLivePreview();
         }
 
-        function handleAIGeneration() {
+        function getAiPrompt() {
             const formData = new FormData(form);
             const topic = formData.get('topic');
             const name = formData.get('description');
@@ -1082,17 +1090,17 @@
 
             if (!topic || !name || !subjectName) {
                 alert("Please fill in the Title, Presenter's Name, and Subject Name fields first.");
-                return;
+                return null;
             }
 
-            const fullPrompt = `You are a professional PowerPoint creator. Your task is to return a valid JSON object for a presentation.
+            return `You are a professional PowerPoint creator. Your task is to return a valid JSON object for a presentation.
 - Topic: ${topic}
 - Subject: ${subjectName} (Code: ${subjectCode})
 - Presenter Details: For ${name} (Role: ${roll}), ${department}, ${college}, ${university}.
 - Slides: Create exactly ${slideCount} content slides.
 - Content Rules:
 - Each slide needs a 'title', an 'imageSearch' keyword (a concise phrase), and content.
-- Content must be either 'bullets' (an array of 2-4 strings) OR a 'table' (with 'headers' array and 'rows' array of arrays).
+- Content must be either 'bullets' (an array of 4-5 strings) OR a 'table' (with 'headers' array and 'rows' array of arrays).
 - Set 'contentType' to "bullets" or "table" accordingly.
 - For bullet slides, set 'imagePosition' to "left" or "right".
 - For table slides, set 'imagePosition' to "none" as they will be full-width.
@@ -1106,9 +1114,109 @@
     { "title": "string", "contentType": "table", "table": { "headers": ["string"], "rows": [["string"]] }, "imageSearch": "string", "imagePosition": "none" }
   ]
 }`;
+        }
 
-            window.open(`https://www.perplexity.ai/search?q=${encodeURIComponent(fullPrompt)}`, '_blank', 'width=800,height=600');
-            alert("ChatGPT opened with your prompt. Copy the JSON response and paste it into the 'Manual Input' tab to load your presentation.");
+        function openMistralWithPrompt() {
+            const prompt = getAiPrompt();
+            if (prompt) {
+                window.open(`https://chat.mistral.ai/chat?q=${encodeURIComponent(prompt)}`, '_blank', 'width=800,height=600');
+                alert("Mistral AI opened with your prompt. Copy the JSON response and paste it into the textarea below to load your presentation.");
+            }
+        }
+
+        async function handleAIGeneration() {
+            const fullPrompt = getAiPrompt();
+            if (!fullPrompt) return;
+
+            const formData = new FormData(form);
+            const topic = formData.get('topic');
+            const slideCount = parseInt(formData.get('slide-count'), 10);
+
+            setLoading(true, "Generating with AI...");
+            try {
+                // MOCK API CALL - FOR DEMONSTRATION
+                console.log("Simulating AI API call. PROMPT:", fullPrompt);
+                await new Promise(resolve => setTimeout(resolve, 2500));
+
+                const mockResponseJson = {
+                    frontSlide: JSON.parse(localStorage.getItem(FORM_STATE_KEY) || '{}'),
+                    slides: [{
+                            "title": `Introduction to ${topic}`,
+                            "contentType": "bullets",
+                            "bullets": ["Key concepts and definitions", "Historical context", "Relevance and importance", "Scope of this presentation"],
+                            "imageSearch": `${topic} abstract concept`,
+                            "imagePosition": "right"
+                        },
+                        {
+                            "title": "Core Principles",
+                            "contentType": "bullets",
+                            "bullets": ["Fundamental theory one", "Fundamental theory two", "Practical applications", "Case study overview"],
+                            "imageSearch": `core principles diagram`,
+                            "imagePosition": "left"
+                        },
+                        {
+                            "title": "Comparative Analysis",
+                            "contentType": "table",
+                            "table": {
+                                "headers": ["Metric", "Method A", "Method B"],
+                                "rows": [
+                                    ["Speed", "Fast", "Very Fast"],
+                                    ["Cost", "Low", "High"],
+                                    ["Scalability", "Good", "Excellent"]
+                                ]
+                            },
+                            "imageSearch": "data analysis chart",
+                            "imagePosition": "none"
+                        }
+                    ]
+                };
+                mockResponseJson.frontSlide.date = new Date().toLocaleDateString('en-CA');
+                mockResponseJson.slides = mockResponseJson.slides.concat(
+                    Array.from({
+                        length: Math.max(0, slideCount - 3)
+                    }, (_, i) => ({
+                        title: `Additional Topic ${i + 1}`,
+                        contentType: "bullets",
+                        bullets: ["Point 1", "Point 2", "Point 3"],
+                        imageSearch: `abstract topic ${i + 1}`,
+                        imagePosition: i % 2 === 0 ? "right" : "left"
+                    }))
+                ).slice(0, slideCount);
+                // End of MOCK block
+
+                await loadPresentationData(mockResponseJson);
+
+            } catch (error) {
+                alert(`An error occurred during AI generation: ${error.message}\n\nThis is a demo. In a real app, this would contact a server. Please use the Manual Generation tab for now.`);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        async function loadPresentationData(presentationData) {
+            if (!presentationData.frontSlide || !presentationData.slides) {
+                throw new Error("Invalid JSON structure. Missing 'frontSlide' or 'slides' array.");
+            }
+            if (!presentationData.frontSlide.date) {
+                presentationData.frontSlide.date = new Date().toLocaleDateString('en-CA');
+            }
+
+            setFormValues(presentationData.frontSlide);
+            currentPresentation = presentationData;
+            currentTopicSlug = slugify(presentationData.frontSlide.topic);
+
+            await db.saveData('presentations', {
+                slug: currentTopicSlug,
+                data: presentationData
+            });
+            await db.saveData('app_state', {
+                key: 'lastOpened',
+                value: currentTopicSlug
+            });
+
+            renderSlides(presentationData, currentTopicSlug);
+            showSlideView();
+            manualJsonInput.value = '';
         }
 
         async function handleManualGeneration() {
@@ -1116,31 +1224,8 @@
             try {
                 const rawJson = manualJsonInput.value.trim();
                 if (!rawJson) throw new Error("Please paste JSON data.");
-
                 const presentationData = JSON.parse(rawJson);
-
-                if (!presentationData.frontSlide || !presentationData.slides) {
-                    throw new Error("Invalid JSON structure. Missing 'frontSlide' or 'slides' array.");
-                }
-                if (!presentationData.frontSlide.date) {
-                    presentationData.frontSlide.date = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
-                }
-
-                setFormValues(presentationData.frontSlide);
-                currentPresentation = presentationData;
-                currentTopicSlug = slugify(presentationData.frontSlide.topic);
-
-                await db.saveData('presentations', {
-                    slug: currentTopicSlug,
-                    data: presentationData
-                });
-                await db.saveData('app_state', {
-                    key: 'lastOpened',
-                    value: currentTopicSlug
-                });
-
-                renderSlides(presentationData, currentTopicSlug);
-                showSlideView();
+                await loadPresentationData(presentationData);
             } catch (error) {
                 alert(`Invalid JSON or structure: ${error.message}`);
             } finally {
@@ -1162,9 +1247,8 @@
                 slug: currentTopicSlug,
                 data: currentPresentation
             });
-            renderSlides(currentPresentation, currentTopicSlug); // Re-render to show the new slide
+            renderSlides(currentPresentation, currentTopicSlug);
         }
-
 
         function renderSlides(data, slug) {
             slidesContainer.innerHTML = '';
@@ -1173,10 +1257,8 @@
                 slides
             } = data;
 
-            // --- Render New Front Slide ---
             const frontSlideEl = document.createElement('div');
             frontSlideEl.className = 'slide front-slide';
-
             const subtitleText = `${frontSlide.subjectCode || ''}: ${frontSlide.subjectName || ''}`.replace(/^: |: $/g, '');
             const dateText = frontSlide.date ? new Date(frontSlide.date).toLocaleDateString('en-US', {
                 timeZone: 'UTC',
@@ -1188,7 +1270,6 @@
                 month: 'long',
                 day: 'numeric'
             });
-
             frontSlideEl.innerHTML = `
             <div class="content-overlay">
                 <header class="slide-header">
@@ -1213,8 +1294,6 @@
             </div>`;
             slidesContainer.appendChild(frontSlideEl);
 
-
-            // --- Render Content Slides ---
             slides.forEach((slideData, index) => {
                 const slideEl = document.createElement('div');
                 slideEl.className = 'slide';
@@ -1232,14 +1311,15 @@
 
                 const imageAreaHtml = `
                     <div class="image-area">
-                        <div class="image-drop-zone" data-slide-index="${index}">
-                            <div class="drop-prompt">Drag & drop image here</div>
+                        <label class="image-drop-zone" data-slide-index="${index}">
+                            <div class="drop-prompt">Drag & drop or click to upload</div>
                             <img class="slide-image" style="display: none;" />
                             <button class="remove-image-btn" style="display: none;">×</button>
-                        </div>
+                            <input type="file" accept="image/*" style="display: none;">
+                        </label>
                         <div class="image-controls">
                             <a href="https://www.google.com/search?tbm=isch&q=${encodeURIComponent(slideData.imageSearch)}" target="_blank" rel="noopener noreferrer">Search: "${slideData.imageSearch}" 🔍</a>
-                            ${slideData.contentType !== 'table' ? `<button class="action-btn secondary" style="padding: 2px 6px; font-size: 12px;" data-action="swap-image">Swap ↔</button>`: ''}
+                            ${slideData.contentType !== 'table' ? `<button class="action-btn secondary" style="padding: 2px 6px; font-size: 12px;" data-action="swap-image">Swap ↔</button>` : ''}
                         </div>
                     </div>`;
 
@@ -1250,37 +1330,29 @@
                         ${(slideData.contentType !== 'table' && slideData.imagePosition !== 'none') ? imageAreaHtml : ''}
                     </div>`;
                 if (slideData.contentType === 'table' || slideData.imagePosition === 'none') {
-                    slideEl.querySelector('.text-content').style.flex = '2'; // Give more space to table/text
+                    slideEl.querySelector('.text-content').style.flex = '2';
                 }
-
                 slidesContainer.appendChild(slideEl);
 
                 if (slideData.contentType !== 'table' && slideData.imagePosition !== 'none') {
                     const dropZone = slideEl.querySelector('.image-drop-zone');
-                    const removeBtn = slideEl.querySelector('.remove-image-btn');
-                    const swapBtn = slideEl.querySelector('[data-action="swap-image"]');
-
                     dropZone.addEventListener('dragover', (e) => {
                         e.preventDefault();
                         dropZone.classList.add('dragover');
                     });
                     dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-                    dropZone.addEventListener('drop', (e) => {
-                        dropZone.classList.remove('dragover');
-                        handleDrop(e);
-                    });
-                    removeBtn.addEventListener('click', handleRemoveImage);
-                    swapBtn?.addEventListener('click', handleSwapImage);
+                    dropZone.addEventListener('drop', handleDrop);
+                    dropZone.querySelector('input[type="file"]').addEventListener('change', handleFileSelect);
+                    slideEl.querySelector('.remove-image-btn').addEventListener('click', handleRemoveImage);
+                    slideEl.querySelector('[data-action="swap-image"]')?.addEventListener('click', handleSwapImage);
 
                     (async () => {
-                        const imageKey = `${slug}-slide-${index}`;
-                        const imgData = await db.getData('images', imageKey);
+                        const imgData = await db.getData('images', `${slug}-slide-${index}`);
                         if (imgData) updateImageUI(dropZone, URL.createObjectURL(imgData.blob));
                     })();
                 }
             });
 
-            // Add the "Add Slide" button at the end
             const addSlideContainer = document.createElement('div');
             addSlideContainer.className = 'add-slide-btn-container';
             addSlideContainer.innerHTML = '<span>+</span>';
@@ -1288,34 +1360,26 @@
             addSlideContainer.addEventListener('click', addSlide);
             slidesContainer.appendChild(addSlideContainer);
 
-            slidesContainer.querySelectorAll('[contenteditable="true"]').forEach(el => {
-                el.addEventListener('blur', handleContentEdit);
-            });
+            slidesContainer.querySelectorAll('[contenteditable="true"]').forEach(el => el.addEventListener('blur', handleContentEdit));
         }
 
-        // --- Event Handlers ---
+        // --- Event Handlers (Content & Image) ---
         function handleContentEdit(e) {
-            const target = e.target;
-            const path = target.dataset.path;
+            const path = e.target.dataset.path;
             if (!path || !currentPresentation) return;
-
             const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.');
             let obj = currentPresentation;
             for (let i = 0; i < keys.length - 1; i++) {
-                obj = obj[keys[i].match(/^\d+$/) ? parseInt(keys[i]) : keys[i]];
+                obj = obj[keys[i]];
             }
-            obj[keys[keys.length - 1].match(/^\d+$/) ? parseInt(keys[keys.length - 1]) : keys[keys.length - 1]] = target.innerText;
-
+            obj[keys[keys.length - 1]] = e.target.innerText;
             db.saveData('presentations', {
                 slug: currentTopicSlug,
                 data: currentPresentation
             });
         }
 
-        async function handleDrop(e) {
-            e.preventDefault();
-            const dropZone = e.currentTarget;
-            const file = e.dataTransfer?.files[0];
+        async function processAndSaveImage(file, dropZone) {
             if (file && file.type.startsWith('image/')) {
                 const slideIndex = dropZone.dataset.slideIndex;
                 if (slideIndex === undefined) return;
@@ -1327,28 +1391,30 @@
                 updateImageUI(dropZone, URL.createObjectURL(file));
             }
         }
+
+        function handleFileSelect(e) {
+            processAndSaveImage(e.target.files[0], e.target.closest('.image-drop-zone'));
+        }
+        async function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            await processAndSaveImage(e.dataTransfer?.files[0], e.currentTarget);
+        }
         async function handleRemoveImage(e) {
+            e.stopPropagation();
             const dropZone = e.currentTarget.parentElement;
             const slideIndex = dropZone.dataset.slideIndex;
-            if (slideIndex === undefined) return;
-            const imageKey = `${currentTopicSlug}-slide-${slideIndex}`;
-            await db.deleteData('images', imageKey);
+            await db.deleteData('images', `${currentTopicSlug}-slide-${slideIndex}`);
             updateImageUI(dropZone, null);
         }
 
         function handleSwapImage(e) {
-            if (!currentPresentation) return;
             const slideEl = e.currentTarget.closest('.slide');
-            const slideIndex = parseInt(slideEl.dataset.slideIndex);
-            const slideBody = slideEl.querySelector('.slide-body');
-
-            const currentPos = currentPresentation.slides[slideIndex].imagePosition;
-            const newPos = currentPos === 'left' ? 'right' : 'left';
-            currentPresentation.slides[slideIndex].imagePosition = newPos;
-
-            slideBody.classList.toggle('image-left', newPos === 'left');
-            slideBody.classList.toggle('image-right', newPos === 'right');
-
+            const slideIndex = parseInt(slideEl.dataset.slideIndex, 10);
+            const slide = currentPresentation.slides[slideIndex];
+            slide.imagePosition = slide.imagePosition === 'left' ? 'right' : 'left';
+            slideEl.querySelector('.slide-body').classList.toggle('image-left', slide.imagePosition === 'left');
+            slideEl.querySelector('.slide-body').classList.toggle('image-right', slide.imagePosition === 'right');
             db.saveData('presentations', {
                 slug: currentTopicSlug,
                 data: currentPresentation
@@ -1357,12 +1423,8 @@
 
         function handleThemeChange(e) {
             applyTheme(e.target.value);
-            db.saveData('app_state', {
-                key: 'selectedTheme',
-                value: e.target.value
-            });
+            saveFormState();
         }
-
         async function handleLogoUpload(e) {
             const file = e.target.files?. [0];
             if (file) {
@@ -1378,7 +1440,6 @@
             }
         }
 
-
         // --- Export Functions ---
         async function exportToPptx() {
             if (!currentPresentation) return;
@@ -1392,12 +1453,10 @@
                 slides
             } = currentPresentation;
 
-            // --- New Front Slide ---
             let titleSlide = pptx.addSlide();
             titleSlide.background = {
                 color: colors.bg
             };
-
             const subtitleText = `${frontSlide.subjectCode || ''}: ${frontSlide.subjectName || ''}`.replace(/^: |: $/g, '');
             titleSlide.addShape(pptx.shapes.LINE, {
                 x: 0.5,
@@ -1483,36 +1542,35 @@
             });
 
             if (currentLogo) {
+                // --- NEW: Adjusted logo position and size for export ---
                 titleSlide.addImage({
                     data: currentLogo,
                     x: 8.5,
-                    y: 4.9,
-                    w: 1.25,
-                    h: 0.5,
+                    y: 4.8,
+                    w: 1.3,
+                    h: 0.7,
+                    shape: 'roundRect',
                     sizing: {
                         type: 'contain',
-                        w: 1.25,
-                        h: 0.5
+                        w: 1.3,
+                        h: 0.7
                     }
                 });
             }
 
-            // --- Content Slides ---
             for (let i = 0; i < slides.length; i++) {
                 const slideData = slides[i];
-                const slideOptions = {};
-                if (transition !== 'none') {
-                    slideOptions.transition = {
+                const slideOptions = (transition !== 'none') ? {
+                    transition: {
                         type: transition,
                         duration: 1,
                         advClick: true
-                    };
-                }
+                    }
+                } : {};
                 let newSlide = pptx.addSlide(slideOptions);
                 newSlide.background = {
                     color: colors.bg
                 };
-
                 newSlide.addText(slideData.title, {
                     x: 0.5,
                     y: 0.2,
@@ -1524,15 +1582,14 @@
                     fit: 'shrink'
                 });
 
-                const contentY = 0.9;
-                const contentH = 4.5;
-                const contentW_full = 9.0;
-                const contentW_half = 4.3;
-
+                const contentY = 0.9,
+                    contentH = 4.5,
+                    contentW_full = 9.0,
+                    contentW_half = 4.3;
                 if (slideData.contentType === 'table' && slideData.table) {
                     const tableRows = [
-                        slideData.table.headers.map(header => ({
-                            text: header,
+                        slideData.table.headers.map(h => ({
+                            text: h,
                             options: {
                                 fill: colors.accentColor,
                                 color: 'FFFFFF',
@@ -1561,8 +1618,7 @@
                         valign: 'top'
                     });
                 } else {
-                    const imageKey = `${currentTopicSlug}-slide-${i}`;
-                    const imgData = await db.getData('images', imageKey);
+                    const imgData = await db.getData('images', `${currentTopicSlug}-slide-${i}`);
                     if (slideData.imagePosition === 'none' || !imgData) {
                         if (slideData.bullets) newSlide.addText(slideData.bullets.join('\n'), {
                             x: 0.5,
@@ -1585,9 +1641,8 @@
                             fontSize: 18
                         });
                         const imageX = slideData.imagePosition === 'right' ? 5.2 : 0.5;
-                        const base64 = await blobToBase64(imgData.blob);
                         newSlide.addImage({
-                            data: base64,
+                            data: await blobToBase64(imgData.blob),
                             x: imageX,
                             y: contentY,
                             w: contentW_half,
@@ -1602,20 +1657,17 @@
                 }
             }
             pptx.writeFile({
-                fileName: `${currentTopicSlug}.pptx`
+                fileName: `${currentTopicSlug || 'presentation'}.pptx`
             });
             setLoading(false);
         }
 
         // --- UI & Utility Functions ---
         function setLoading(isLoading, message = "Working...") {
-            loadManualDataBtn.disabled = isLoading;
-            generateFromAiBtn.disabled = isLoading;
-            exportPptxBtn.disabled = isLoading || !currentPresentation;
+            [loadManualDataBtn, generateFromAiBtn, exportPptxBtn].forEach(btn => btn.disabled = isLoading);
+            if (exportPptxBtn) exportPptxBtn.disabled = isLoading || !currentPresentation;
             loader.classList.toggle('hidden', !isLoading);
-            if (isLoading) {
-                loader.querySelector('p').textContent = message;
-            }
+            if (isLoading) loader.querySelector('p').textContent = message;
         }
 
         function showSlideView() {
@@ -1630,14 +1682,10 @@
         }
 
         function setFormValues(fs) {
-            document.getElementById('topic').value = fs.topic || '';
-            document.getElementById('description').value = fs.name || '';
-            document.getElementById('subject-name').value = fs.subjectName || '';
-            document.getElementById('subject-code').value = fs.subjectCode || '';
-            document.getElementById('roll').value = fs.roll || '';
-            document.getElementById('department').value = fs.department || '';
-            document.getElementById('college').value = fs.college || '';
-            document.getElementById('university').value = fs.university || '';
+            FORM_FIELD_IDS.forEach(id => {
+                const key = id.replace(/-./g, m => m[1].toUpperCase());
+                if (document.getElementById(id) && fs[key]) document.getElementById(id).value = fs[key];
+            });
         }
 
         function applyTheme(themeName) {
@@ -1647,82 +1695,73 @@
         }
 
         function getThemePptxColors(theme) {
-            switch (theme) {
-                case 'bright-gradient':
-                    return {
-                        bg: 'F0F2F5', titleColor: '212529', textColor: '212529', accentColor: '0056B3', borderColor: 'DEE2E6'
-                    };
-                case 'solo-blue':
-                    return {
-                        bg: 'EAF2F8', titleColor: '0037C7', textColor: '3C4043', accentColor: '0037C7', borderColor: 'D2E3FC'
-                    };
-                case 'geometric-dark':
-                    return {
-                        bg: '1E293B', titleColor: 'F8FAFC', textColor: 'CBD5E1', accentColor: '34D399', borderColor: '334155'
-                    };
-                case 'dark-gradient':
-                default:
-                    return {
-                        bg: '1E1E1E', titleColor: 'FFFFFF', textColor: 'E0E0E0', accentColor: '03DAC6', borderColor: '2C2C2C'
-                    };
-            }
+            const themes = {
+                'bright-gradient': {
+                    bg: 'F0F2F5',
+                    titleColor: '212529',
+                    textColor: '212529',
+                    accentColor: '0056B3',
+                    borderColor: 'DEE2E6'
+                },
+                'solo-blue': {
+                    bg: 'EAF2F8',
+                    titleColor: '0037C7',
+                    textColor: '3C4043',
+                    accentColor: '0037C7',
+                    borderColor: 'D2E3FC'
+                },
+                'geometric-dark': {
+                    bg: '1E293B',
+                    titleColor: 'F8FAFC',
+                    textColor: 'CBD5E1',
+                    accentColor: '34D399',
+                    borderColor: '334155'
+                },
+                'dark-gradient': {
+                    bg: '1E1E1E',
+                    titleColor: 'FFFFFF',
+                    textColor: 'E0E0E0',
+                    accentColor: '03DAC6',
+                    borderColor: '2C2C2C'
+                }
+            };
+            return themes[theme] || themes['dark-gradient'];
         }
 
         function updateImageUI(dropZone, imageUrl) {
             const imgEl = dropZone.querySelector('.slide-image');
             const promptEl = dropZone.querySelector('.drop-prompt');
             const removeBtn = dropZone.querySelector('.remove-image-btn');
-            if (imageUrl) {
-                imgEl.src = imageUrl;
-                imgEl.style.display = 'block';
-                promptEl.style.display = 'none';
-                removeBtn.style.display = 'block';
-            } else {
-                imgEl.src = '';
-                imgEl.style.display = 'none';
-                promptEl.style.display = 'block';
-                removeBtn.style.display = 'none';
-            }
+            imgEl.style.display = imageUrl ? 'block' : 'none';
+            if (imageUrl) imgEl.src = imageUrl;
+            promptEl.style.display = imageUrl ? 'none' : 'block';
+            removeBtn.style.display = imageUrl ? 'block' : 'none';
         }
 
         function updateLivePreview() {
             const subjectName = document.getElementById('subject-name').value;
             const subjectCode = document.getElementById('subject-code').value;
-            const subtitle = `${subjectCode || ''}${subjectCode && subjectName ? ': ' : ''}${subjectName || ''}` || 'Subject & Code';
-            document.getElementById('preview-subtitle').innerText = subtitle;
-
+            document.getElementById('preview-subtitle').innerText = `${subjectCode || ''}${subjectCode && subjectName ? ': ' : ''}${subjectName || ''}` || 'Subject & Code';
             document.getElementById('preview-title').innerText = document.getElementById('topic').value || 'Presentation Title';
             document.getElementById('preview-presenter-name').innerText = document.getElementById('description').value || "Presenter's Name";
-
             const detailsContainer = document.getElementById('preview-details');
-            detailsContainer.innerHTML = ''; // Clear old ones
+            detailsContainer.innerHTML = '';
             ['roll', 'department', 'college', 'university'].forEach(id => {
                 const value = document.getElementById(id).value;
-                if (value) {
-                    const span = document.createElement('span');
-                    span.innerText = value;
-                    detailsContainer.appendChild(span);
-                }
+                if (value) detailsContainer.innerHTML += `<span>${value}</span>`;
             });
-
             document.getElementById('preview-date').innerText = new Date().toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
             });
-
             const logoEl = document.getElementById('preview-logo');
-            if (currentLogo) {
-                logoEl.src = currentLogo;
-                logoEl.style.display = 'block';
-            } else {
-                logoEl.style.display = 'none';
-            }
+            logoEl.style.display = currentLogo ? 'block' : 'none';
+            if (currentLogo) logoEl.src = currentLogo;
         }
 
         function slugify(text) {
-            return text.toString().toLowerCase()
-                .replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-').replace(/^-+/, '').replace(/-+$/, '');
+            return text.toString().toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-').replace(/^-+/, '').replace(/-+$/, '');
         }
 
         function blobToBase64(blob) {
