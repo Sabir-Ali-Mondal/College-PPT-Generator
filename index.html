@@ -1129,69 +1129,68 @@
             if (!fullPrompt) return;
 
             const formData = new FormData(form);
-            const topic = formData.get('topic');
             const slideCount = parseInt(formData.get('slide-count'), 10);
 
             setLoading(true, "Generating with AI...");
             try {
-                // MOCK API CALL - FOR DEMONSTRATION
-                console.log("Simulating AI API call. PROMPT:", fullPrompt);
-                await new Promise(resolve => setTimeout(resolve, 2500));
+                console.log("Calling AI API with prompt:", fullPrompt);
 
-                const mockResponseJson = {
-                    frontSlide: JSON.parse(localStorage.getItem(FORM_STATE_KEY) || '{}'),
-                    slides: [{
-                            "title": `Introduction to ${topic}`,
-                            "contentType": "bullets",
-                            "bullets": ["Key concepts and definitions", "Historical context", "Relevance and importance", "Scope of this presentation"],
-                            "imageSearch": `${topic} abstract concept`,
-                            "imagePosition": "right"
-                        },
-                        {
-                            "title": "Core Principles",
-                            "contentType": "bullets",
-                            "bullets": ["Fundamental theory one", "Fundamental theory two", "Practical applications", "Case study overview"],
-                            "imageSearch": `core principles diagram`,
-                            "imagePosition": "left"
-                        },
-                        {
-                            "title": "Comparative Analysis",
-                            "contentType": "table",
-                            "table": {
-                                "headers": ["Metric", "Method A", "Method B"],
-                                "rows": [
-                                    ["Speed", "Fast", "Very Fast"],
-                                    ["Cost", "Low", "High"],
-                                    ["Scalability", "Good", "Excellent"]
-                                ]
-                            },
-                            "imageSearch": "data analysis chart",
-                            "imagePosition": "none"
-                        }
-                    ]
-                };
-                mockResponseJson.frontSlide.date = new Date().toLocaleDateString('en-CA');
-                mockResponseJson.slides = mockResponseJson.slides.concat(
-                    Array.from({
-                        length: Math.max(0, slideCount - 3)
-                    }, (_, i) => ({
-                        title: `Additional Topic ${i + 1}`,
-                        contentType: "bullets",
-                        bullets: ["Point 1", "Point 2", "Point 3"],
-                        imageSearch: `abstract topic ${i + 1}`,
-                        imagePosition: i % 2 === 0 ? "right" : "left"
-                    }))
-                ).slice(0, slideCount);
-                // End of MOCK block
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        prompt: fullPrompt
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API request failed with status ${response.status}`);
+                }
 
-                await loadPresentationData(mockResponseJson);
+                const data = await response.json();
+
+                if (!data.content) {
+                    throw new Error("No content returned from AI API.");
+                }
+
+                // --- MODIFIED: Robust JSON extraction ---
+                const rawContent = data.content;
+                const jsonStart = rawContent.indexOf('{');
+                const jsonEnd = rawContent.lastIndexOf('}');
+
+                if (jsonStart === -1 || jsonEnd === -1 || jsonEnd < jsonStart) {
+                    console.error("AI Response was not JSON:", rawContent);
+                    throw new Error("Could not find a valid JSON object in the AI response.");
+                }
+
+                const jsonString = rawContent.substring(jsonStart, jsonEnd + 1);
+
+                let aiJson;
+                try {
+                    aiJson = JSON.parse(jsonString);
+                } catch (parseError) {
+                    console.error("Failed to parse extracted JSON:", jsonString);
+                    throw new Error("Invalid JSON structure received from AI. Check the console for the raw response.");
+                }
+                // --- End of modification ---
+
+                aiJson.frontSlide.date = new Date().toLocaleDateString('en-CA');
+
+                if (aiJson.slides) {
+                    aiJson.slides = aiJson.slides.slice(0, slideCount);
+                }
+
+                await loadPresentationData(aiJson);
 
             } catch (error) {
-                alert(`An error occurred during AI generation: ${error.message}\n\nThis is a demo. In a real app, this would contact a server. Please use the Manual Generation tab for now.`);
+                alert(`An error occurred during AI generation: ${error.message}`);
             } finally {
                 setLoading(false);
             }
         }
+
 
         async function loadPresentationData(presentationData) {
             if (!presentationData.frontSlide || !presentationData.slides) {
@@ -1222,16 +1221,29 @@
         async function handleManualGeneration() {
             setLoading(true, 'Loading Data...');
             try {
-                const rawJson = manualJsonInput.value.trim();
-                if (!rawJson) throw new Error("Please paste JSON data.");
-                const presentationData = JSON.parse(rawJson);
+                let rawInput = manualJsonInput.value.trim();
+                if (!rawInput) throw new Error("Textarea is empty. Please paste the JSON data.");
+
+                // --- MODIFIED: Apply robust extraction for manual input too ---
+                const jsonStart = rawInput.indexOf('{');
+                const jsonEnd = rawInput.lastIndexOf('}');
+
+                if (jsonStart === -1 || jsonEnd === -1 || jsonEnd < jsonStart) {
+                    throw new Error("Could not find a valid JSON object in the pasted text.");
+                }
+
+                const jsonString = rawInput.substring(jsonStart, jsonEnd + 1);
+
+                const presentationData = JSON.parse(jsonString);
                 await loadPresentationData(presentationData);
+
             } catch (error) {
-                alert(`Invalid JSON or structure: ${error.message}`);
+                alert(`Error loading manual data: ${error.message}`);
             } finally {
                 setLoading(false);
             }
         }
+
 
         function addSlide() {
             if (!currentPresentation) return;
