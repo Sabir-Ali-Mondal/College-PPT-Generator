@@ -1,6 +1,6 @@
 ## 🧩 Project: **COLLEGE PPT**
 
-An AI-powered web tool for students and educators to generate beautiful presentations automatically — just by giving a topic and basic info. Slides are generated via Gemini/ChatGPT in JSON format and can be edited, enriched with images, and downloaded as PPT or PDF.
+An AI-powered web tool for students and educators to generate beautiful presentations automatically — just by giving a topic and basic info. Slides are generated via Gemini/ChatGPT in JSON format and can be edited, enriched with images, and downloaded as PPT .
 
 ---
 
@@ -125,11 +125,6 @@ Rules:
   * Bullets (20px)
   * Optional image if uploaded
 
-### 🟥 Export to PDF
-
-* Uses `html2pdf.js` or `jsPDF`
-* Renders HTML slide previews into downloadable PDF
-
 ---
 
 ## 🔗 Image Suggestion → Google Images
@@ -154,17 +149,8 @@ const url = `https://www.google.com/search?tbm=isch&q=${searchQuery}`;
 5. Slides rendered with title, bullets, image suggestion
 6. User manually adds images via drag-drop
 7. All data persists locally (offline-first)
-8. Final export as **PPTX or PDF**
+8. Final export as **PPTX**
 
 ---
 
 ## 🧩 College PPT Templates (User Can Choose)
-
-```
-1. Academic Presentation Template
-2. Minimalist Thesis Defense
-3. Cool College Presentation
-4. Geometric College Presentation
-```
-
-Download from SlidesGo or host on Drive/public repo. Allow selection via dropdown or preview tiles.
